@@ -35,23 +35,34 @@ cur.execute("""
         address TEXT,
         latitude REAL,
         longitude REAL,
-        price INTEGER
+        rating REAL
     )
 """)
 
 # Insert data
 for place in data.get("results", []):
+    fsq_id = place['fsq_id']
+    
+    # Request additional details using Place Details API
+    detail_url = f"https://api.foursquare.com/v3/places/{fsq_id}"
+    detail_res = requests.get(detail_url, headers=headers)
+    detail_data = detail_res.json()
+    
+    rating= detail_data.get('rating')  # Usually an integer from 1 to 4
+    
+    # Insert into DB
     cur.execute("""
         INSERT OR IGNORE INTO businesses VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
-        place['fsq_id'],
+        fsq_id,
         place['name'],
         place['categories'][0]['name'] if place.get('categories') else None,
         place['location'].get('formatted_address'),
         place['geocodes']['main']['latitude'],
         place['geocodes']['main']['longitude'],
-        place.get('price')
+        rating  # ← now it won't be null if Foursquare provides it
     ))
+
 
 conn.commit()
 conn.close()
