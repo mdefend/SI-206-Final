@@ -30,58 +30,51 @@ headers = {
     "Authorization": API_KEY
 }
 
-max_results = 100
-  # slight shift to avoid duplicate areas
-lat = 42.2808
-long = -83.7430
-for i in range(0, max_results // 25):
-    if i >= 2:
-        lat = lat + random.uniform(-0.01, 0.01)
-        long = long + random.uniform(-0.01, 0.01)
+MAX_INSERT_PER_RUN = 25
+inserted = 0
 
-    params = {
-        "ll": f"{lat},{long}",
-        "query": "restaurant",
-        "limit": 25,
-    }
+# Base location
+lat = 42.2808 + random.uniform(-0.01, 0.01)
+long = -83.7430 + random.uniform(-0.01, 0.01)
 
-# Make API request
-    response = requests.get("https://api.foursquare.com/v3/places/search", headers=headers, params=params)
-    data = response.json()
+params = {
+    "ll": f"{lat},{long}",
+    "query": "restaurant",
+    "limit": 50  # Request more to filter out duplicates
+}
 
+response = requests.get("https://api.foursquare.com/v3/places/search", headers=headers, params=params)
+data = response.json()
 
-# Insert data
-    for place in data.get("results", []):
+for place in data.get("results", []):
+    if inserted >= MAX_INSERT_PER_RUN:
+        break
 
-        fsq_id = place['fsq_id']
-        cur.execute("SELECT 1 FROM businesses WHERE fsq_id = ?", (fsq_id,))
-        exists = cur.fetchone()
-        if not exists: 
+    fsq_id = place['fsq_id']
+    cur.execute("SELECT 1 FROM businesses WHERE fsq_id = ?", (fsq_id,))
+    if cur.fetchone():
+        continue
 
-    
-        # Request additional details using Place Details API
-            detail_url = f"https://api.foursquare.com/v3/places/{fsq_id}"
-            detail_res = requests.get(detail_url, headers=headers)
-            detail_data = detail_res.json()
-        
-            rating= detail_data.get('rating')  # Usually an integer from 1 to 4
-        
-        # Insert into DB
-            cur.execute("""
-                INSERT OR IGNORE INTO businesses (fsq_id, name, category, address, latitude, longitude, rating) VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (
-                fsq_id,
-                place['name'],
-                place['categories'][0]['name'] if place.get('categories') else None,
-                place['location'].get('formatted_address'),
-                place['geocodes']['main']['latitude'],
-                place['geocodes']['main']['longitude'],
-                rating  # ← now it won't be null if Foursquare provides it
-            ))
-            test = cur.execute("SELECT COUNT(*) FROM businesses")
-            count = test.fetchone()[0]
-            if count >= max_results:
-                break
+    # Get extra details like rating
+    detail_url = f"https://api.foursquare.com/v3/places/{fsq_id}"
+    detail_res = requests.get(detail_url, headers=headers)
+    detail_data = detail_res.json()
+    rating = detail_data.get('rating')
+
+    cur.execute("""
+        INSERT OR IGNORE INTO businesses (fsq_id, name, category, address, latitude, longitude, rating)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        fsq_id,
+        place['name'],
+        place['categories'][0]['name'] if place.get('categories') else None,
+        place['location'].get('formatted_address'),
+        place['geocodes']['main']['latitude'],
+        place['geocodes']['main']['longitude'],
+        rating
+    ))
+    inserted += 1
+
 
 conn.commit()
 conn.close()
