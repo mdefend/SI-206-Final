@@ -2,7 +2,6 @@ import sqlite3
 import json
 import os 
 import requests
-import pandas as pd 
 import seaborn as sb 
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
@@ -44,26 +43,22 @@ def visuals():
         FROM businesses b
         JOIN weather w ON b.bus_id = w.location
         GROUP BY b.category
-        ORDER BY avg_temp DESC;
+        ORDER BY count DESC
+        LIMIT 10;
         """
     conn = sqlite3.connect("project_data.db")
-    df = pd.read_sql_query(query, conn)
-    ## Data consolidation: 
-    df['restaurant_type'] = df['restaurant_type'].map(lambda x: 'Bar' if 'Bar' in x else x)
-    df['restaurant_type'] = df['restaurant_type'].map(lambda x: 'Grocery Store' if 'Grocery' in x else x)
-    df['restaurant_type'] = df['restaurant_type'].map(lambda x: 'American Restaurant' if 'American' in x else x)
-
+    cur = conn.cursor() 
+    results = cur.execute(query).fetchall()
+    types = [row[0] for row in results]
+    avg_temp = [row[1] for row in results]
+    count = [row[2] for row in results]
     conn.close()
-    df = df.groupby('restaurant_type', as_index=False).agg({
-    'avg_temp': 'mean',   
-    'count': 'sum'      
-    })
     plt.figure(figsize=(10, 6))
-    sb.scatterplot(data=df, x='count', y='avg_temp', hue='restaurant_type', palette='icefire')
-    plt.title("Average Temperature vs Number of Types of Restaurants")
+    sb.scatterplot(x=count , y=avg_temp, hue=types, palette='icefire')
+    plt.title("Average Temperature vs Number of Restaurants By Type")
     plt.xlabel("Count")
     plt.ylabel("Average Temperature (f)")
-    plt.legend(title='Restaurant Type', bbox_to_anchor=(1.02, 1), loc='upper left', ncol=2)
+    plt.legend(title='Restaurant Type', bbox_to_anchor=(1.02, 1), loc='upper left')
 
     plt.tight_layout()
     plt.show()
