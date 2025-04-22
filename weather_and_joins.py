@@ -55,18 +55,18 @@ def visuals():
 
     conn.close()
     df = df.groupby('restaurant_type', as_index=False).agg({
-    'avg_temp': 'mean',   # Sum the 'Rainfall' for each restaurant type
-    'count': 'sum'       # Sum the 'Count' for each restaurant type
+    'avg_temp': 'mean',   
+    'count': 'sum'      
     })
-    plt.figure(figsize=(12, 6))
-    sb.scatterplot(data=df, x='count', y='avg_temp', hue='restaurant_type')
-    plt.title("Average Temperature vs TNumber of Restaurants")
+    plt.figure(figsize=(10, 6))
+    sb.scatterplot(data=df, x='count', y='avg_temp', hue='restaurant_type', palette='icefire')
+    plt.title("Average Temperature vs Number of Types of Restaurants")
     plt.xlabel("Count")
-    plt.ylabel("Temperature")
-    plt.legend(title='Restaurant Type', bbox_to_anchor=(0.5, 1.5), loc='center left', ncol=2)
+    plt.ylabel("Average Temperature (f)")
+    plt.legend(title='Restaurant Type', bbox_to_anchor=(1.02, 1), loc='upper left', ncol=2)
+
     plt.tight_layout()
     plt.show()
-
 
 
 
