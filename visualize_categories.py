@@ -15,6 +15,10 @@ cur.execute("""
 """)
 results = cur.fetchall()
 
+print("Top 10 Business Categories and Counts:")
+for category, count in results:
+    print(f"{category}: {count}")
+
 categories = [row[0] for row in results]
 counts = [row[1] for row in results]
 
