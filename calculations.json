@@ -1,0 +1,42 @@
+[
+    {
+        "category": "Restaurant",
+        "count": 6
+    },
+    {
+        "category": "Dining and Drinking",
+        "count": 7
+    },
+    {
+        "category": "Chinese Restaurant",
+        "count": 8
+    },
+    {
+        "category": "Caf\u00e9",
+        "count": 10
+    },
+    {
+        "category": "Deli",
+        "count": 11
+    },
+    {
+        "category": "Diner",
+        "count": 12
+    },
+    {
+        "category": "Burger Joint",
+        "count": 13
+    },
+    {
+        "category": "Bakery",
+        "count": 14
+    },
+    {
+        "category": "American Restaurant",
+        "count": 15
+    },
+    {
+        "category": "Pizzeria",
+        "count": 29
+    }
+]

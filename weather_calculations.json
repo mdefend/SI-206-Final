@@ -1,0 +1,77 @@
+[
+    {
+        "business_type": "Pizzeria",
+        "average_temperature": 56.114285714285714,
+        "count": 29
+    },
+    {
+        "business_type": "American Restaurant",
+        "average_temperature": 56.114285714285714,
+        "count": 15
+    },
+    {
+        "business_type": "Bakery",
+        "average_temperature": 56.114285714285714,
+        "count": 14
+    },
+    {
+        "business_type": "Burger Joint",
+        "average_temperature": 56.114285714285714,
+        "count": 13
+    },
+    {
+        "business_type": "Diner",
+        "average_temperature": 56.114285714285714,
+        "count": 12
+    },
+    {
+        "business_type": "Deli",
+        "average_temperature": 56.114285714285714,
+        "count": 11
+    },
+    {
+        "business_type": "Caf\u00e9",
+        "average_temperature": 56.114285714285714,
+        "count": 10
+    },
+    {
+        "business_type": "Chinese Restaurant",
+        "average_temperature": 56.114285714285714,
+        "count": 8
+    },
+    {
+        "business_type": "Dining and Drinking",
+        "average_temperature": 56.114285714285714,
+        "count": 7
+    },
+    {
+        "business_type": "Restaurant",
+        "average_temperature": 56.114285714285714,
+        "count": 6
+    },
+    {
+        "business_type": "Korean Restaurant",
+        "average_temperature": 56.114285714285714,
+        "count": 6
+    },
+    {
+        "business_type": "Sushi Restaurant",
+        "average_temperature": 56.114285714285714,
+        "count": 5
+    },
+    {
+        "business_type": "Steakhouse",
+        "average_temperature": 56.114285714285714,
+        "count": 5
+    },
+    {
+        "business_type": "Fast Food Restaurant",
+        "average_temperature": 56.114285714285714,
+        "count": 5
+    },
+    {
+        "business_type": "Mexican Restaurant",
+        "average_temperature": 56.114285714285714,
+        "count": 4
+    }
+]

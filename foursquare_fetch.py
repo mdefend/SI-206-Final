@@ -23,13 +23,17 @@ def create_database():
             bus_id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
             fsq_id TEXT UNIQUE,
             name TEXT,
-            category TEXT,
+            category INTEGER,
             address TEXT,
             latitude REAL,
             longitude REAL,
             rating REAL
         )
     """)
+    conn.commit()
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT UNIQUE)"
+    )
     return conn, cur
 
 
@@ -48,9 +52,10 @@ def fetch_and_store_business_data(cur, conn):
         "Accept": "application/json",
         "Authorization": API_KEY
     }
-
-    lat = 42.2808 + random.uniform(-0.01, 0.01)
-    long = -83.7430 + random.uniform(-0.01, 0.01)
+    ##randomizes location for better graphs 
+    totalsize = cur.execute("""SELECT COUNT(*) FROM businesses""").fetchone()[0]/1000
+    lat = 42.2808 + random.uniform(totalsize*-1, totalsize)
+    long = -83.7430 + random.uniform(totalsize*-1, totalsize)
 
     params = {
         "ll": f"{lat},{long}",
@@ -60,7 +65,7 @@ def fetch_and_store_business_data(cur, conn):
 
     response = requests.get("https://api.foursquare.com/v3/places/search", headers=headers, params=params)
     data = response.json()
-
+    cat_id = 0
     inserted = 0
     for place in data.get("results", []):
         if inserted >= 25:
@@ -76,6 +81,18 @@ def fetch_and_store_business_data(cur, conn):
         detail_res = requests.get(detail_url, headers=headers)
         detail_data = detail_res.json()
         rating = detail_data.get('rating')
+        tempcat = place['categories'][0]['name'] if place.get('categories') else None
+        result = cur.execute("""
+            SELECT id FROM categories WHERE category = ?
+        """, (tempcat,)).fetchone()
+        if result: 
+            cat_id = result[0]
+        else: 
+            cur.execute("""
+            INSERT INTO categories (category) VALUES (?)
+         """, (tempcat,))
+            cat_id = cur.lastrowid
+
 
         cur.execute("""
             INSERT OR IGNORE INTO businesses (fsq_id, name, category, address, latitude, longitude, rating)
@@ -83,7 +100,7 @@ def fetch_and_store_business_data(cur, conn):
         """, (
             fsq_id,
             place['name'],
-            place['categories'][0]['name'] if place.get('categories') else None,
+            cat_id,
             place['location'].get('formatted_address'),
             place['geocodes']['main']['latitude'],
             place['geocodes']['main']['longitude'],
@@ -95,53 +112,9 @@ def fetch_and_store_business_data(cur, conn):
     print("✅ Data saved to project_data.db")
 
 
-def display_and_plot_category_counts(cur):
-    """
-    Queries the top 10 business categories by count from the database,
-    prints them to the terminal, and generates a horizontal bar chart.
-
-    Input:
-    - cur: SQLite cursor object
-
-    Output: A matplotlib bar chart is displayed and category counts are printed to terminal.
-    """
-    cur.execute("""
-        SELECT category, COUNT(*) as count FROM businesses
-        WHERE category IS NOT NULL
-        GROUP BY category
-        ORDER BY count DESC
-        LIMIT 10
-    """)
-    results = cur.fetchall()
-
-    print("Top 10 Business Categories and Counts:")
-    for category, count in results:
-        print(f"{category}: {count}")
-
-    categories = [row[0] for row in results]
-    counts = [row[1] for row in results]
-
-    categories.reverse()
-    counts.reverse()
-
-    colors = ['#4B8BBE'] * len(categories)
-    colors[-1] = '#306998'
-
-    plt.figure(figsize=(10, 6))
-    plt.barh(categories, counts, color=colors)
-    plt.xlabel("Number of Businesses")
-    plt.title("Top 10 Business Categories (Foursquare Data)")
-
-    for i, v in enumerate(counts):
-        plt.text(v + 0.1, i, str(v), va='center')
-
-    plt.tight_layout()
-    plt.show()
-
-
 if __name__ == "__main__":
     conn, cur = create_database()
     fetch_and_store_business_data(cur, conn)
-    display_and_plot_category_counts(cur)
+    
     conn.close()
 

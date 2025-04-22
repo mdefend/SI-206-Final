@@ -32,38 +32,6 @@ def weatherapicall(location,cur,conn):
              
 
 
-     
-
-
-
-def visuals(): 
-    query = """
-        SELECT b.category AS restaurant_type, w.avg_temp AS avg_temp,
-        COUNT(*) AS count
-        FROM businesses b
-        JOIN weather w ON b.bus_id = w.location
-        GROUP BY b.category
-        ORDER BY count DESC
-        LIMIT 10;
-        """
-    conn = sqlite3.connect("project_data.db")
-    cur = conn.cursor() 
-    results = cur.execute(query).fetchall()
-    types = [row[0] for row in results]
-    avg_temp = [row[1] for row in results]
-    count = [row[2] for row in results]
-    conn.close()
-    plt.figure(figsize=(10, 6))
-    sb.scatterplot(x=count , y=avg_temp, hue=types, palette='icefire')
-    plt.title("Average Temperature vs Number of Restaurants By Type")
-    plt.xlabel("Count")
-    plt.ylabel("Average Temperature (f)")
-    plt.legend(title='Restaurant Type', bbox_to_anchor=(1.02, 1), loc='upper left')
-
-    plt.tight_layout()
-    plt.show()
-
-
 
     
 def main ():
@@ -81,8 +49,7 @@ def main ():
         results = cur.execute("SELECT bus_id, latitude, longitude FROM businesses LIMIT ? OFFSET ?",(25,weather_count)).fetchall()
         weatherapicall(results, cur, conn)
         conn.commit()
-    else: 
-        visuals()
+        print("data added!")
 
 
            
